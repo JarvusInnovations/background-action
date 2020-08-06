@@ -1,0 +1,42 @@
+{
+  "name": "background-action",
+  "version": "1.0.0",
+  "description": "Runs commands in the background with logging and failure detection. `background-action` will send your processes to the background once a set of files, ports, sockets or http resources are available. It can optionally tail output until ready/timeout and/or log output stderr/stdout post-run.",
+  "main": "dist/index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "prepare": "ncc build index.js -o dist --source-map",
+    "test": "jest",
+    "all": "npm run lint && npm run prepare && npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JarvusInnovations/background-action.git"
+  },
+  "keywords": [
+    "GitHub",
+    "Actions",
+    "Background",
+    "Process",
+    "Command",
+    "Logging",
+    "wait-on"
+  ],
+  "author": "Jeff Mealo <jmealo@protonmail.com>",
+  "license": "Apache",
+  "bugs": {
+    "url": "https://github.com/JarvusInnovations/background-action/issues"
+  },
+  "homepage": "https://github.com/JarvusInnovations/background-action#readme",
+  "dependencies": {
+    "@actions/core": "^1.1.1",
+    "parse-duration": "^0.4.4",
+    "tail": "^2.0.4",
+    "wait-on": "github:jmealo/wait-on#master"
+  },
+  "devDependencies": {
+    "@zeit/ncc": "^0.22.3",
+    "eslint": "^7.6.0",
+    "jest": "^26.2.2"
+  }
+}

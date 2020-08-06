@@ -1,0 +1,93 @@
+name: "Tests"
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'releases/*'
+
+jobs:
+  # unit tests
+  jest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: npm ci
+    - run: npm test
+
+  # test action works running from the graph
+  success:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./
+      with:
+        run: |
+          npm install
+          PORT=1212 node test/server.js &
+          PORT=2121 node test/server.js &
+          PORT=3232 node test/server.js &
+        wait-on: |
+          http://localhost:1212/bar
+          tcp:localhost:1212
+          http://localhost:2121/bar
+          tcp:localhost:2121
+          http://localhost:3232/bar
+          tcp:localhost:3232
+        log-output-resume: stderr
+        tail: true
+        wait-for: 5m
+        log-output: stderr,stdout
+        log-output-if: failure
+    - run: sleep 20 # allow stderr to get output in the background
+
+  exit-early:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./
+      with:
+        run: |
+          npm install
+          PORT=2233 node test/server1.js &
+          PORT=4455 node test/server2.js &
+          PORT=5566 node test/server3.js &
+        wait-on: |
+          http://localhost:2233/bar
+          tcp:localhost:2233
+          http://localhost:4455/bar
+          tcp:localhost:4455
+          http://localhost:5566/bar
+          tcp:localhost:5566
+        log-output-resume: stderr
+        tail: true
+        wait-for: 5m
+        log-output: stderr,stdout
+        log-output-if: exit-early
+
+  timeout:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./
+      with:
+        run: |
+          PORT=9333 node test/server.js &
+          PORT=9444 node test/server.js &
+          PORT=9555 node test/server.js &
+        wait-on: |
+          http://localhost:9333/bar
+          tcp:localhost:9333
+          http://localhost:9444/bar
+          tcp:localhost:9444
+          http://localhost:9555/bar
+          tcp:localhost:9666
+        tail: false
+        wait-for: 20s
+        log-output: stderr,stdout
+        log-output-resume: false
+        log-output-if: timeout
+
