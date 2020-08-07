@@ -25,7 +25,7 @@ inputs:
     description: specify which logs (stdout,stderr) to output post-run (after the run has completed or failed) (stderr,stdout,true,false)
     default: stdout,stderr
 
-  tail-truncate:
+  log-output-resume:
     description: truncate tailed stderr/stdout output from post-run logs (i.e. deduplicate log output) [stderr,stdout,true,false]
     default: false
 
