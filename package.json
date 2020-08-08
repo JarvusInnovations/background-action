@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "lint": "eslint .",
-    "prepare": "ncc build index.js -o dist --source-map",
+    "build": "ncc build index.js -o dist --source-map",
     "test": "jest",
-    "all": "npm run lint && npm run prepare && npm run test"
+    "all": "npm run lint && npm run build && npm run test"
   },
   "repository": {
     "type": "git",
