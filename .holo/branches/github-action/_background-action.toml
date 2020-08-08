@@ -1,0 +1,6 @@
+[holomapping]
+files = [
+    "action.yml",
+    "*.js",
+    "package*.json"
+]
