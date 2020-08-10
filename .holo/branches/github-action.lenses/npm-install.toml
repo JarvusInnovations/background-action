@@ -1,8 +1,0 @@
-[hololens]
-package = "holo/lens-npm-install"
-
-[hololens.input]
-files = [
-    "package.json",
-    "package-lock.json"
-]

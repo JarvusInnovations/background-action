@@ -1,0 +1,13 @@
+[hololens]
+package = "holo/lens-npm-run/0.3"
+
+[hololens.npm_run]
+env = "development"
+command = "build"
+output_dir = "dist"
+
+[hololens.input]
+files = "**"
+
+[hololens.output]
+merge = "replace"
