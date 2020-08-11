@@ -1,0 +1,39 @@
+name: 'background-action'
+description: 'Send processes to the background once a set of files, ports, sockets or http resources are available. Optionally tail output until ready/timeout and/or log output stderr/stdout post-run.'
+inputs:
+  name:
+    description: 'descriptive name to reference this background-process in job output (default: background-action)'
+    default: background-action
+
+  run:
+    description: commands to run, supports multi-line commands (to background multiple processes, use & at the end of each line)
+    required: true
+
+  wait-on:
+    description: 'resources to wait on -- seperated by commas or newlines, supported prefixes: [file,http,https,http-get,https-get,tcp,socket] (for advanced usage, pass a JSON serialized wait-on config)'
+    required: false
+
+  wait-for:
+    description: duration to wait for resources to be available (specify unit postfix, defaults to ms)
+    default: 30s
+
+  tail:
+    description: tail log output while waiting on resources to be available [stderr,stdout,true,false]
+    default: true
+
+  log-output:
+    description: specify which logs (stdout,stderr) to output post-run (after the run has completed or failed) (stderr,stdout,true,false)
+    default: stdout,stderr
+
+  log-output-resume:
+    description: truncate tailed stderr/stdout output from post-run logs (i.e. deduplicate log output) [stderr,stdout,true,false]
+    default: false
+
+  log-output-if:
+    description: control if post-run logging occurs (timeout,early-exit,failure,true,false)
+    default: true
+
+runs:
+  using: 'node12'
+  main: 'index.js'
+  post: 'index.js'
