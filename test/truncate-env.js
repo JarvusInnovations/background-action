@@ -8,6 +8,5 @@ module.exports = {
   INPUT_TAIL: 'true',
   'INPUT_WAIT-FOR': '5m',
   'INPUT_LOG-OUTPUT': 'true',
-  INPUT_NAME: 'truncate-test',
   'INPUT_LOG-OUTPUT-IF': 'true'
 }

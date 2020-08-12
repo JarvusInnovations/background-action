@@ -17,7 +17,7 @@ test('truncate', (done) => {
   })
 
   setTimeout(() => {
-    const pid = core.getState('pid')
+    const pid = core.getState('post-run')
     expect(pid).toBeDefined()
     const stdout = core.getState('stdout')
     expect(stdout).toBeDefined()
@@ -34,8 +34,8 @@ test('truncate', (done) => {
     let sawGroupEnd = 0
 
     post.stdout.split('\n').forEach(line => {
-      if (line.startsWith('::group::Truncated Error Output: truncate-test')) sawStdErrGroup = true
-      if (line.startsWith('::group::Truncated Output: truncate-test')) sawStdOutGroup = true
+      if (line.startsWith('::group::Truncated Error Output:')) sawStdErrGroup = true
+      if (line.startsWith('::group::Truncated Output:')) sawStdOutGroup = true
       if (line.startsWith('::endgroup::')) sawGroupEnd++
     })
 

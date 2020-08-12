@@ -11,8 +11,9 @@ function getRawInputs() {
     const logOutput = core.getInput('log-output')
     const logOutputResume = core.getInput('log-output-resume')
     const logOutputIf = core.getInput('log-output-if')
+    const workingDirectory = core.getInput('working-directory')
 
-    return { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf }
+    return { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf, workingDirectory }
 }
 
 function parseLogOption(str) {
@@ -24,8 +25,9 @@ function parseLogOption(str) {
 
     return option
 }
+
 function normalizeInputs(inputs) {
-    let { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf } = inputs
+    let { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf, workingDirectory } = inputs
 
     tail = parseLogOption(tail)
     logOutputResume = parseLogOption(logOutputResume)
@@ -50,7 +52,7 @@ function normalizeInputs(inputs) {
         if (waitOn.resources.length === 0) throw new Error('You must provide one or more resources, see: https://github.com/jeffbski/wait-on#readme')
     }
 
-    return { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf }
+    return { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf, workingDirectory }
 }
 
 module.exports = normalizeInputs(getRawInputs())

@@ -25,6 +25,8 @@ Use background-action to bootstrap your system under test to eliminate workflow 
 jobs:
   tests:
     runs-on: ubuntu-latest
+    env:
+      API_PORT: 1212
     steps:
       - uses: actions/checkout@v2
       - uses: JarvusInnovations/background-action@v1
@@ -32,17 +34,19 @@ jobs:
         with:
           run: |
             npm install
-            PORT=1212 node test/server.js &
+            PORT=$API_PORT node test/server.js &
             PORT=2121 node test/server.js &
             PORT=3232 node test/server.js &
+          # your step-level and job-level environment variables are available to your commands as-is
           # npm install will count towards the wait-for timeout
           # whenever possible, move unrelated scripts to a different step
           # to background multiple processes: add & to the end of the command
           wait-on: |
-            http://localhost:1212
+            http://localhost:${{ env.API_PORT }}
             http-get://localhost:2121
             tcp:localhost:3232
             file://very-important-secrets.txt
+          # IMPORTANT: to use environment variables in wait-on, you must use this form: ${{ env.VAR }}
           # See wait-on section below for all resource types and prefixes
           tail: true # true = stderr,stdout
           # This will allow you to monitor the progress live
@@ -52,6 +56,9 @@ jobs:
           log-output: stderr,stdout # same as true
           log-output-if: failure
           # failure = exit-early or timeout
+          working-directory: backend
+          # sets the working directory (cwd) for the shell running commands
+
     - name: Tests that require the resources defined above to run
       run: npm test
 ```
@@ -61,12 +68,13 @@ jobs:
 | Parameter           | Description                                                          | Allowed Values                                  | Default         |
 |---------------------|----------------------------------------------------------------------|-------------------------------------------------|-----------------|
 | `run`               | Commands to run, supports multiple lines                             |                                                 |                 |
-| `wait-on`           | What resources to wait for: `http\|tcp\|file\|socket\|unix://`          | See `wait-on` below                             |                 |
+| `wait-on`           | What resources to wait for: `http\|tcp\|file\|socket\|unix://`       | See `wait-on` below                             |                 |
 | `wait-for`          | How long to wait for (default unit: `ms`)                            | `#ms, #s/sec, #m/min, #h/hr`                    | `5m`            |
 | `tail`              | Which outputs to tail while you wait                                 | `stderr,stdout,true,false`                      | `stderr,stdout` |
 | `log-output`        | Which outputs to log post-run (after the job)                        | `stderr,stdout,true,false`                      | `stderr,stdout` |
 | `log-output-resume` | Which outputs should resume where tail left off (no duplicate lines) | `stderr,stdout,true,false`                      | `stderr,stdout` |
 | `log-output-if`     | Whether or not to log output                                         | `failure,exit-early,timeout,success,true,false` |                 |
+| `working-directory` | Sets the working directory (cwd) for the shell running commands      |                                                 |                 |
 
 ### wait-on
 
