@@ -1,16 +1,16 @@
 name: 'background-action'
 description: 'Send processes to the background once a set of files, ports, sockets or http resources are available. Optionally tail output until ready/timeout and/or log output stderr/stdout post-run.'
 inputs:
-  name:
-    description: 'descriptive name to reference this background-process in job output (default: background-action)'
-    default: background-action
-
   run:
     description: commands to run, supports multi-line commands (to background multiple processes, use & at the end of each line)
     required: true
 
+  working-directory:
+    description: the current working directory for the shell running the commands
+    required: false
+
   wait-on:
-    description: 'resources to wait on -- seperated by commas or newlines, supported prefixes: [file,http,https,http-get,https-get,tcp,socket] (for advanced usage, pass a JSON serialized wait-on config)'
+    description: 'resources to wait on -- separated by commas or newlines, supported prefixes: [file,http,https,http-get,https-get,tcp,socket] (for advanced usage, pass a JSON serialized wait-on config)'
     required: false
 
   wait-for:

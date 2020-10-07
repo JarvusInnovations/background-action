@@ -3923,7 +3923,7 @@ var combineAll_1 = __webpack_require__(627);
 exports.combineAll = combineAll_1.combineAll;
 var combineLatest_1 = __webpack_require__(335);
 exports.combineLatest = combineLatest_1.combineLatest;
-var concat_1 = __webpack_require__(102);
+var concat_1 = __webpack_require__(571);
 exports.concat = concat_1.concat;
 var concatAll_1 = __webpack_require__(919);
 exports.concatAll = concatAll_1.concatAll;
@@ -5017,7 +5017,31 @@ exports.keys = function (obj, options = {}) {
 /***/ }),
 /* 80 */,
 /* 81 */,
-/* 82 */,
+/* 82 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+// We use any as a valid input type
+/* eslint-disable @typescript-eslint/no-explicit-any */
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Sanitizes an input into a string so it can be passed into issueCommand safely
+ * @param input input to sanitize into a string
+ */
+function toCommandValue(input) {
+    if (input === null || input === undefined) {
+        return '';
+    }
+    else if (typeof input === 'string' || input instanceof String) {
+        return input;
+    }
+    return JSON.stringify(input);
+}
+exports.toCommandValue = toCommandValue;
+//# sourceMappingURL=utils.js.map
+
+/***/ }),
 /* 83 */,
 /* 84 */,
 /* 85 */,
@@ -5873,17 +5897,34 @@ var SkipWhileSubscriber = (function (_super) {
 
 "use strict";
 
+// For internal use, subject to change.
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-var concat_1 = __webpack_require__(406);
-function concat() {
-    var observables = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        observables[_i] = arguments[_i];
+// We use any as a valid input type
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const fs = __importStar(__webpack_require__(747));
+const os = __importStar(__webpack_require__(87));
+const utils_1 = __webpack_require__(82);
+function issueCommand(command, message) {
+    const filePath = process.env[`GITHUB_${command}`];
+    if (!filePath) {
+        throw new Error(`Unable to find environment variable for file command ${command}`);
     }
-    return function (source) { return source.lift.call(concat_1.concat.apply(void 0, [source].concat(observables))); };
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`Missing file at path: ${filePath}`);
+    }
+    fs.appendFileSync(filePath, `${utils_1.toCommandValue(message)}${os.EOL}`, {
+        encoding: 'utf8'
+    });
 }
-exports.concat = concat;
-//# sourceMappingURL=concat.js.map
+exports.issueCommand = issueCommand;
+//# sourceMappingURL=file-command.js.map
 
 /***/ }),
 /* 103 */
@@ -5902,73 +5943,91 @@ exports.isArrayLike = (function (x) { return x && typeof x.length === 'number' &
 const core = __webpack_require__(470)
 const WaitOn = __webpack_require__(13)
 const Tail = __webpack_require__(88).Tail
+const path = __webpack_require__(622)
 const spawn = __webpack_require__(129).spawn
 const inputs = __webpack_require__(525)
 
-const { run, name, waitOn, tail, logOutput } = inputs
-const POST_RUN = core.getState('post-run') == 1
+const { run, workingDirectory, waitOn, tail, logOutput } = inputs
+const POST_RUN = core.getState('post-run')
 
-let stderr, stdout, pid
+let stderr, stdout
+
+if (core.isDebug()) {
+  console.log(process.env)
+}
 
 // serve as the entry-point for both main and post-run invokations
 if (POST_RUN) {
   __webpack_require__(922)
 } else {
-  core.saveState('post-run', 1)
+  (async function () {
+    core.saveState('post-run', process.pid)
 
-  pid = runCommand(run)
+    const cwd = workingDirectory || process.env.GITHUB_WORKSPACE || './'
+    const stdErrFile = path.join(cwd, `${process.pid}.err`)
+    const stdOutFile = path.join(cwd, `${process.pid}.out`)
 
-  core.saveState('pid', pid)
+    const checkStderr = setInterval(() => {
+      stderr = TailWrapper(stdErrFile, tail.stderr, core.info)
+      if (stderr) clearInterval(checkStderr)
+    }, 1000)
 
-  setImmediate(() => {
-    stderr = TailWrapper(`./${pid}.err`, tail.stderr, core.info)
-    stdout = TailWrapper(`./${pid}.out`, tail.stdout, core.info)
-  })
+    const checkStdout = setInterval(() => {
+      stdout = TailWrapper(stdOutFile, tail.stdout, core.info)
+      if (stdout) clearInterval(checkStdout)
+    }, 1000)
 
-  WaitOn(waitOn, (err) => exitHandler(err, err ? 'timeout' : 'success'))
+    runCommand(run)
+
+    WaitOn(waitOn, (err) => exitHandler(err, err ? 'timeout' : 'success'))
+  })()
 }
 
-function exitHandler(error, reason) {
-  if (stdout) stdout.unwatch()
-  if (stderr) stderr.unwatch()
+async function exitHandler(error, reason) {
+  if (stdout && stdout.unwatch) stdout.unwatch()
+  if (stderr && stderr.unwatch) stderr.unwatch()
 
-  core.saveState(`reason_${pid}`, reason)
+  core.saveState(`reason_${process.pid}`, reason)
+  if (stdout && stdout.pos) core.saveState('stdout', stdout.pos)
+  if (stderr && stderr.pos) core.saveState('stderr', stderr.pos)
 
-  setImmediate(() => {
-    if (error) {
-      core.error(error)
-      core.setFailed(error.message)
-    }
-
-    core.endGroup(name)
-
-    if (stdout) core.saveState('stdout', stdout.pos)
-    if (stderr) core.saveState('stderr', stderr.pos)
-
-    process.exit(error ? 1 : 0)
-  })
+  if (error) {
+    core.error(error)
+    core.setFailed(error.message)
+  }
+  process.exit(error ? 1 : 0)
 }
 
 function runCommand(run) {
   let cmd = `(${run} wait)`
 
-  if (tail.stdout || logOutput.stdout) cmd += ' > $$.out'
-  if (tail.stderr || logOutput.stderr) cmd += ' 2> $$.err'
+  const spawnOpts = { detached: true, stdio: 'ignore' }
 
-  const shell = spawn('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', cmd], { detached: true, stdio: 'ignore' })
+  if (workingDirectory) spawnOpts.cwd = workingDirectory
+
+  const pipeStdout = tail.stdout || logOutput.stdout
+  const pipeStderr = tail.stderr || logOutput.stderr
+
+  if (pipeStdout) cmd += ` > ${process.pid}.out`
+  if (pipeStderr) cmd += ` 2> ${process.pid}.err`
+
+  const shell = spawn('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', cmd], spawnOpts)
+  shell.on('error', (err) => exitHandler(err, 'exit-early'))
   shell.on('close', () => exitHandler(new Error('Exited early'), 'exit-early'))
-
-  return shell.pid
 }
 
 function TailWrapper(filename, shouldTail, output) {
   if (!shouldTail) return false
 
-  const tail = new Tail(filename, { flushAtEOF: true })
-  tail.on('line', output)
-  tail.on('error', core.warning)
-
-  return tail
+  try {
+    const tail = new Tail(filename, { flushAtEOF: true })
+    tail.on('line', output)
+    tail.on('error', core.warning)
+    return tail
+  } catch (e) {
+    console.warn('background-action tried to tail a file before it was ready....')
+    return false
+  }
 }
 
 
@@ -14660,6 +14719,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const os = __importStar(__webpack_require__(87));
+const utils_1 = __webpack_require__(82);
 /**
  * Commands
  *
@@ -14713,28 +14773,14 @@ class Command {
         return cmdStr;
     }
 }
-/**
- * Sanitizes an input into a string so it can be passed into issueCommand safely
- * @param input input to sanitize into a string
- */
-function toCommandValue(input) {
-    if (input === null || input === undefined) {
-        return '';
-    }
-    else if (typeof input === 'string' || input instanceof String) {
-        return input;
-    }
-    return JSON.stringify(input);
-}
-exports.toCommandValue = toCommandValue;
 function escapeData(s) {
-    return toCommandValue(s)
+    return utils_1.toCommandValue(s)
         .replace(/%/g, '%25')
         .replace(/\r/g, '%0D')
         .replace(/\n/g, '%0A');
 }
 function escapeProperty(s) {
-    return toCommandValue(s)
+    return utils_1.toCommandValue(s)
         .replace(/%/g, '%25')
         .replace(/\r/g, '%0D')
         .replace(/\n/g, '%0A')
@@ -16548,6 +16594,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const command_1 = __webpack_require__(431);
+const file_command_1 = __webpack_require__(102);
+const utils_1 = __webpack_require__(82);
 const os = __importStar(__webpack_require__(87));
 const path = __importStar(__webpack_require__(622));
 /**
@@ -16574,9 +16622,17 @@ var ExitCode;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function exportVariable(name, val) {
-    const convertedVal = command_1.toCommandValue(val);
+    const convertedVal = utils_1.toCommandValue(val);
     process.env[name] = convertedVal;
-    command_1.issueCommand('set-env', { name }, convertedVal);
+    const filePath = process.env['GITHUB_ENV'] || '';
+    if (filePath) {
+        const delimiter = '_GitHubActionsFileCommandDelimeter_';
+        const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
+        file_command_1.issueCommand('ENV', commandValue);
+    }
+    else {
+        command_1.issueCommand('set-env', { name }, convertedVal);
+    }
 }
 exports.exportVariable = exportVariable;
 /**
@@ -16592,7 +16648,13 @@ exports.setSecret = setSecret;
  * @param inputPath
  */
 function addPath(inputPath) {
-    command_1.issueCommand('add-path', {}, inputPath);
+    const filePath = process.env['GITHUB_PATH'] || '';
+    if (filePath) {
+        file_command_1.issueCommand('PATH', inputPath);
+    }
+    else {
+        command_1.issueCommand('add-path', {}, inputPath);
+    }
     process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
 }
 exports.addPath = addPath;
@@ -19048,8 +19110,9 @@ function getRawInputs() {
     const logOutput = core.getInput('log-output')
     const logOutputResume = core.getInput('log-output-resume')
     const logOutputIf = core.getInput('log-output-if')
+    const workingDirectory = core.getInput('working-directory')
 
-    return { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf }
+    return { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf, workingDirectory }
 }
 
 function parseLogOption(str) {
@@ -19061,8 +19124,9 @@ function parseLogOption(str) {
 
     return option
 }
+
 function normalizeInputs(inputs) {
-    let { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf } = inputs
+    let { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf, workingDirectory } = inputs
 
     tail = parseLogOption(tail)
     logOutputResume = parseLogOption(logOutputResume)
@@ -19087,7 +19151,7 @@ function normalizeInputs(inputs) {
         if (waitOn.resources.length === 0) throw new Error('You must provide one or more resources, see: https://github.com/jeffbski/wait-on#readme')
     }
 
-    return { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf }
+    return { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf, workingDirectory }
 }
 
 module.exports = normalizeInputs(getRawInputs())
@@ -21003,7 +21067,24 @@ internals.Shadow = class {
 /***/ }),
 /* 569 */,
 /* 570 */,
-/* 571 */,
+/* 571 */
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var concat_1 = __webpack_require__(406);
+function concat() {
+    var observables = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        observables[_i] = arguments[_i];
+    }
+    return function (source) { return source.lift.call(concat_1.concat.apply(void 0, [source].concat(observables))); };
+}
+exports.concat = concat;
+//# sourceMappingURL=concat.js.map
+
+/***/ }),
 /* 572 */
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
@@ -30674,15 +30755,18 @@ exports.concatAll = concatAll;
 const core = __webpack_require__(470)
 const inputs = __webpack_require__(525)
 const fs = __webpack_require__(747)
+const path = __webpack_require__(622)
 
-const { name, logOutput, logOutputResume, logOutputIf } = inputs
+const { logOutput, logOutputResume, logOutputIf, workingDirectory } = inputs
 
-const pid = core.getState('pid')
+const pid = core.getState('post-run')
 const reason = core.getState(`reason_${pid}`)
 const stdout = parseInt(core.getState('stdout') || 0, 10)
 const stderr = parseInt(core.getState('stderr') || 0, 10)
-const stderrPath = `${pid}.err`
-const stdoutPath = `${pid}.out`
+
+const cwd = workingDirectory || process.env.GITHUB_WORKSPACE || './'
+const stdoutPath = path.join(cwd, `${pid}.out`)
+const stderrPath = path.join(cwd, `${pid}.err`)
 
 const shouldLog = logOutputIf === 'true' || logOutputIf === reason || (logOutputIf === 'failure' && (reason === 'exit-early' || reason === 'timeout'))
 
@@ -30707,7 +30791,7 @@ async function streamLogs() {
   if (logOutput.stdout) {
     const start = logOutputResume.stdout ? stdout : 0
     const truncated = start > 0
-    await core.group(`${logOutputResume.stdout ? 'Truncated ' : ''}Output: ${name}`, async () => {
+    await core.group(`${logOutputResume.stdout ? 'Truncated ' : ''}Output:`, async () => {
       if (truncated) console.log(`Truncated ${start} bytes of tailed stdout output`)
       await streamLog(stdoutPath, start)
     })
@@ -30716,7 +30800,7 @@ async function streamLogs() {
   if (logOutput.stderr) {
     const start = logOutputResume.stderr ? stderr : 0
     const truncated = start > 0
-    await core.group(`${logOutputResume.stderr ? 'Truncated ' : ''}Error Output: ${name}`, async () => {
+    await core.group(`${logOutputResume.stderr ? 'Truncated ' : ''}Error Output:`, async () => {
       if (truncated) console.log(`Truncated ${start} bytes of tailed stderr output`)
       await streamLog(stderrPath, start)
     })
