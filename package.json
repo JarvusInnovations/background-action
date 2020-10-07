@@ -22,21 +22,21 @@
     "Logging",
     "wait-on"
   ],
-  "author": "Jeff Mealo <jmealo@protonmail.com>",
-  "license": "Apache",
+  "author": "Jeff Mealo <jeff.m@jarv.us>",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/JarvusInnovations/background-action/issues"
   },
   "homepage": "https://github.com/JarvusInnovations/background-action#readme",
   "dependencies": {
-    "@actions/core": "^1.1.1",
+    "@actions/core": "^1.2.6",
     "parse-duration": "^0.4.4",
     "tail": "^2.0.4",
     "wait-on": "^5.2.0"
   },
   "devDependencies": {
     "@zeit/ncc": "^0.22.3",
-    "eslint": "^7.6.0",
-    "jest": "^26.2.2"
+    "eslint": "^7.10.0",
+    "jest": "^26.5.2"
   }
 }

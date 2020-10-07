@@ -27,7 +27,6 @@ jobs:
     - uses: ./
       with:
         run: |
-          npm install
           PORT=1212 node test/server.js &
           PORT=2121 node test/server.js &
           PORT=3232 node test/server.js &
@@ -42,5 +41,4 @@ jobs:
         tail: true
         wait-for: 5m
         log-output: stderr,stdout
-        log-output-if: failure
-    - run: sleep 20 # allow stderr to get output in the background
+    - run: sleep 30 # allow stderr to get output in the background

@@ -25,7 +25,7 @@ test('timeout', (done) => {
     main.on('close', (code) => {
         console.log(`main exited with code ${code}`)
 
-        const pid = core.getState('pid')
+        const pid = core.getState('post-run')
         expect(pid).toBeDefined()
         const stdout = core.getState('stdout')
         expect(stdout).toBeDefined()
@@ -45,8 +45,8 @@ test('timeout', (done) => {
             data = data.toString()
             //console.log(`post: stdout: ${data}`)
 
-            if (data.includes('::group::Truncated Error Output: timeout-test')) sawStdErrGroup = true
-            if (data.includes('::group::Output: timeout-test')) sawStdOutGroup = true
+            if (data.includes('::group::Truncated Error Output:')) sawStdErrGroup = true
+            if (data.includes('::group::Output:')) sawStdOutGroup = true
             sawGroupEnd += (data.match(/::endgroup::/g) || []).length
         })
 

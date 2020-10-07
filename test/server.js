@@ -1,7 +1,9 @@
 const http = require('http')
 
 const PORT = process.env.PORT || 3000
-const DELAY = 5000
+const DELAY = process.env.DELAY || 5000
+const STDOUT = process.env.STDOUT ? (process.env.STDOUT == 1) : true
+const STDERR = process.env.STDERR ? (process.env.STDERR == 1) : true
 
 const server = http.createServer((req, res) => {
   res.setHeader('Content-Type', 'text/html')
@@ -14,17 +16,15 @@ let x = 0
 let y = 0
 
 setInterval(() => {
-  console.log(`${process.pid}:stdout:${x++}`)
-  console.error(`${process.pid}:stderr:${y++}`)
+  STDOUT && console.log(`${process.pid}:stdout:${x++}`)
+  STDERR && console.error(`${process.pid}:stderr:${y++}`)
+  if (x === 15) throw new Error(`${process.pid}:${y}`)
 }, 1000)
 
-console.log(`${process.pid}:${x++}: Waiting ${DELAY} ms to listen on: ${PORT}`)
+STDOUT && console.log(`${process.pid}:stdout:${x++}: Waiting ${DELAY} ms to listen on: ${PORT}`)
 
 setTimeout(() => {
-  console.log(`${process.pid}:${x++}: Listening on ${PORT}`)
+  STDOUT && console.log(`${process.pid}:stdout:${x++}: Listening on ${PORT}`)
   server.listen(PORT)
-}, 8000)
+}, DELAY)
 
-setTimeout(() => {
-  throw new Error('This should go to stderr')
-}, 29000)

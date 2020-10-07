@@ -9,6 +9,5 @@ module.exports = {
     INPUT_TAIL: 'true',
     'INPUT_WAIT-FOR': '5m',
     'INPUT_LOG-OUTPUT': 'stderr,stdout',
-    'INPUT_LOG-OUTPUT-IF': 'exit-early',
-    INPUT_NAME: 'exit-early-test'
+    'INPUT_LOG-OUTPUT-IF': 'exit-early'
 }
