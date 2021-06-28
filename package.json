@@ -32,7 +32,7 @@
     "@actions/core": "^1.2.6",
     "parse-duration": "^0.4.4",
     "tail": "^2.0.4",
-    "wait-on": "^5.2.0"
+    "wait-on": "^6.0.0"
   },
   "devDependencies": {
     "@zeit/ncc": "^0.22.3",
