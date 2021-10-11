@@ -31,7 +31,7 @@
   "dependencies": {
     "@actions/core": "^1.2.6",
     "parse-duration": "^0.4.4",
-    "tail": "^2.0.4",
+    "tail": "^2.2.4",
     "wait-on": "^5.2.0"
   },
   "devDependencies": {
