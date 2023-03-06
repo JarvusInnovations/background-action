@@ -30,7 +30,7 @@
   "homepage": "https://github.com/JarvusInnovations/background-action#readme",
   "dependencies": {
     "@actions/core": "^1.2.6",
-    "parse-duration": "^0.4.4",
+    "parse-duration": "^1.0.3",
     "tail": "^2.0.4",
     "wait-on": "^6.0.1"
   },
