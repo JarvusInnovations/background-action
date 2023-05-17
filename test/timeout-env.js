@@ -1,6 +1,7 @@
 module.exports = {
    CI: 'true',
    GITHUB_ACTIONS: 'true',
+   GITHUB_STATE: '',
    USER: 'runner',
    INPUT_RUN: `PORT=43333 node test/server.js &
      PORT=44444 node test/server.js &
