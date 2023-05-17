@@ -2,9 +2,9 @@ const process = require('process')
 const cp = require('child_process')
 const core = require('@actions/core')
 
-test('success', async () => {
-  jest.setTimeout(30000)
+jest.setTimeout(30000)
 
+test('success', async () => {
   Object.assign(process.env, {
     CI: 'true',
     GITHUB_ACTIONS: 'true',

@@ -2,9 +2,10 @@ const process = require('process')
 const cp = require('child_process')
 const core = require('@actions/core')
 
+jest.setTimeout(30000)
+
 // shows how the runner will run a javascript action with env / stdout protocol
 test('truncate', (done) => {
-  jest.setTimeout(30000)
   Object.assign(process.env, require('./truncate-env'))
 
   const main = cp.spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', 'node index.js'], { env: process.env, encoding: 'utf-8' })
