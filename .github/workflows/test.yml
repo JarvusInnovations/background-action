@@ -11,7 +11,7 @@ jobs:
   jest:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: npm ci
     - run: npm test
 
@@ -19,8 +19,8 @@ jobs:
   success:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2-beta
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
       with:
         node-version: '16'
     - run: npm install
