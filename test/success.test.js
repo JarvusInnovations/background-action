@@ -2,12 +2,13 @@ const process = require('process')
 const cp = require('child_process')
 const core = require('@actions/core')
 
-test('success', async () => {
-  jest.setTimeout(30000)
+jest.setTimeout(30000)
 
+test('success', async () => {
   Object.assign(process.env, {
     CI: 'true',
     GITHUB_ACTIONS: 'true',
+    GITHUB_STATE: '',
     USER: 'runner',
     INPUT_RUN: 'DELAY=1000 PORT=3333 node test/server.js &\nPORT=4444 DELAY=2000 node test/server.js &\nDELAY=3000 PORT=5566 node test/server.js &\n',
     'INPUT_WAIT-ON': 'http://localhost:3333/bar\ntcp:localhost:3333\nhttp://localhost:4444/bar\ntcp:localhost:4444\nhttp://localhost:5566/bar\ntcp:localhost:5566\n',
