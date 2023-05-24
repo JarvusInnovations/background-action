@@ -1,5 +1,5 @@
 name: 'background-action'
-description: 'Background-action: Send processes to background, log & detect failures. Optionally wait-on file/url/tcp/udp to become un(available).
+description: 'Background-action: Send processes to background, log & detect failures. Optionally wait-on file/url/tcp/udp to become un(available).'
 inputs:
   run:
     description: commands to run, supports multi-line commands (to background multiple processes, use & at the end of each line)
