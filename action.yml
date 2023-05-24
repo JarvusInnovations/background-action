@@ -1,5 +1,7 @@
 name: 'background-action'
-description: 'Background-action: Send processes to background, log & detect failures. Optionally wait-on file/url/tcp/udp to become un(available).'
+description: |
+  Manage background processes with customizable logging and exit code monitoring.
+  Cross-platform wait for file/port/socket/http(s) readiness.
 inputs:
   run:
     description: commands to run, supports multi-line commands (to background multiple processes, use & at the end of each line)
