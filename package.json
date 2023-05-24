@@ -1,7 +1,7 @@
 {
   "name": "background-action",
   "version": "1.0.0",
-  "description": "Runs commands in the background with logging and failure detection. `background-action` will send your processes to the background once a set of files, ports, sockets or http resources are available. It can optionally tail output until ready/timeout and/or log output stderr/stdout post-run.",
+  "description": "Background processes: tail std(out|err), dedupe post-run lines. Monitor exit-code and file/port/socket/http(s) (un)readiness.",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
