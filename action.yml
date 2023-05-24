@@ -1,7 +1,6 @@
 name: 'background-action'
 description: |
-  Manage background processes with customizable logging and exit code monitoring.
-  Cross-platform wait for file/port/socket/http(s) readiness.
+Background processes: tail std(out|err), dedupe post-run lines. Monitor exit-code and file/port/socket/http(s) (un)readiness.
 inputs:
   run:
     description: commands to run, supports multi-line commands (to background multiple processes, use & at the end of each line)
