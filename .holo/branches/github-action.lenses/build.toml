@@ -1,5 +1,5 @@
 [hololens]
-package = "holo/lens-npm-run/0.3"
+package = "holo/lens-npm-run/14"
 
 [hololens.npm_run]
 env = "development"

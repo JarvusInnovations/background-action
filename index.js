@@ -14,7 +14,7 @@ if (core.isDebug()) {
   console.log(process.env)
 }
 
-// serve as the entry-point for both main and post-run invokations
+// serve as the entry-point for both main and post-run invocations
 if (POST_RUN) {
   require('./post-run')
 } else {
