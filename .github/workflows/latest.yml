@@ -1,0 +1,30 @@
+name: "Test latest published version of action"
+
+on: workflow_dispatch
+
+jobs:
+  success:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - uses: JarvusInnovations/background-action@latest
+        with:
+          run: |
+            PORT=1212 node test/server.js &
+            PORT=2121 node test/server.js &
+            PORT=3232 node test/server.js &
+          wait-on: |
+            http://localhost:1212/bar
+            tcp:localhost:1212
+            http://localhost:2121/bar
+            tcp:localhost:2121
+            http://localhost:3232/bar
+            tcp:localhost:3232
+          log-output-resume: stderr
+          tail: true
+          wait-for: 5m
+          log-output: stderr,stdout
+      - run: sleep 30 # allow stderr to get output in the background
