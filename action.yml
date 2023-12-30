@@ -1,4 +1,7 @@
 name: 'background-action'
+branding:
+  color: orange
+  icon: terminal
 description: |
 Background processes: tail std(out|err), dedupe post-run lines. Monitor exit-code and file/port/socket/http(s) (un)readiness.
 inputs:
