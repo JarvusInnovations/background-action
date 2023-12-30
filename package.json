@@ -1,6 +1,6 @@
 {
   "name": "background-action",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Background processes: tail std(out|err), dedupe post-run lines. Monitor exit-code and file/port/socket/http(s) (un)readiness.",
   "main": "index.js",
   "scripts": {
