@@ -1,6 +1,7 @@
 const process = require('process')
 const cp = require('child_process')
 const core = require('@actions/core')
+const pkg = require('../package.json')
 
 jest.setTimeout(30000)
 
@@ -19,7 +20,7 @@ test('success', async () => {
     'INPUT_LOG-OUTPUT-IF': 'success'
   })
 
-  const main = cp.spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', 'node index.js'], { env: process.env, encoding: 'utf-8' })
+  const main = cp.spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', `node ${pkg.main}`], { env: process.env, encoding: 'utf-8' })
 
   const pids = {}
 
