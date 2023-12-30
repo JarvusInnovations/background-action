@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '16'
-      - uses: JarvusInnovations/background-action
+      - uses: JarvusInnovations/background-action@v1
         with:
           run: |
             PORT=1212 node test/server.js &
