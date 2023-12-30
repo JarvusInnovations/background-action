@@ -1,6 +1,7 @@
 const process = require('process')
 const cp = require('child_process')
 const core = require('@actions/core')
+const pkg = require('../package.json');
 
 jest.setTimeout(30000)
 
@@ -9,7 +10,7 @@ test('working-directory', (done) => {
 
     Object.assign(process.env, require('./working-directory-env'))
 
-    const main = cp.spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', 'node index.js'], { env: process.env, encoding: 'utf-8' })
+    const main = cp.spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', `node ${pkg.main}`], { env: process.env, encoding: 'utf-8' })
 
     main.stdout.split('\n').forEach(line => {
         if (line.startsWith('::save-state name=')) {
