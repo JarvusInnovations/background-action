@@ -2,8 +2,7 @@ name: 'background-action'
 branding:
   color: orange
   icon: terminal
-description: |
-Background processes: tail std(out|err), dedupe post-run lines. Monitor exit-code and file/port/socket/http(s) (un)readiness.
+description: Background commands with log tailing/capture; waits until file/port/socket/http are ready to proceed. Isolates/dedupe errors.
 inputs:
   run:
     description: commands to run, supports multi-line commands (to background multiple processes, use & at the end of each line)
