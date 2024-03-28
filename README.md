@@ -28,7 +28,7 @@ jobs:
     env:
       API_PORT: 1212
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: JarvusInnovations/background-action@v1
         name: Bootstrap System Under Test (SUT)
         with:
@@ -54,7 +54,7 @@ jobs:
           # This will allow you to monitor the progress live
 
           log-output-resume: stderr
-          # Eliminates previosuly output stderr log entries from post-run output
+          # Eliminates previously output stderr log entries from post-run output
 
           wait-for: 5m
 
@@ -85,7 +85,7 @@ jobs:
 
 ### wait-on
 
-`background-action` leverages the handy [wait-on](https://www.npmjs.com/package/wait-on) package to control flow. You can pass any number of resources in the `wait-on` configuration parameter seperated by commas or newlines. For advanced use cases, such as: client-side SSL certs, authorization, proxy configuration and/or custom http headers you can provide a JSON serialized configuration object that matches [wait-on's node.js api usage](https://www.npmjs.com/package/wait-on#nodejs-api-usage).
+`background-action` leverages the handy [wait-on](https://www.npmjs.com/package/wait-on) package to control flow. You can pass any number of resources in the `wait-on` configuration parameter separated by commas or newlines. For advanced use cases, such as: client-side SSL certs, authorization, proxy configuration and/or custom http headers you can provide a JSON serialized configuration object that matches [wait-on's node.js api usage](https://www.npmjs.com/package/wait-on#nodejs-api-usage).
 
 #### Resource Types
 
