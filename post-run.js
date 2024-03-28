@@ -16,12 +16,19 @@ const stderrPath = path.join(cwd, `${pid}.err`)
 
 const shouldLog = logOutputIf === 'true' || logOutputIf === reason || (logOutputIf === 'failure' && (reason === 'exit-early' || reason === 'timeout'))
 
-core.debug({ reason, pid, stderrPath, stdoutPath, stdout, stderr, inputs, shouldLog })
-
-if (shouldLog) {
-  streamLogs()
-} else {
-  process.exit(0)
+if (core.isDebug()) {
+  core.debug(`stdout: ${stdout}`)
+  core.debug(`stderr: ${stderr}`)
+  core.debug(`stdoutPath: ${stdoutPath}`)
+  core.debug(`stderrPath: ${stderrPath}`)
+  core.debug(`shouldLog: ${shouldLog}`)
+  core.debug(`logOutput: ${logOutput}`)
+  core.debug(`logOutputResume: ${logOutputResume}`)
+  core.debug(`logOutputIf: ${logOutputIf}`)
+  core.debug(`workingDirectory: ${workingDirectory}`)
+  core.debug(`pid: ${pid}`)
+  core.debug(`reason: ${reason}`)
+  core.debug(`cwd: ${cwd}`)
 }
 
 function streamLog(path, start) {
@@ -39,7 +46,11 @@ async function streamLogs() {
     const truncated = start > 0
     await core.group(`${logOutputResume.stdout ? 'Truncated ' : ''}Output:`, async () => {
       if (truncated) console.log(`Truncated ${start} bytes of tailed stdout output`)
-      await streamLog(stdoutPath, start)
+      try {
+        await streamLog(stdoutPath, start)
+      } catch(err) {
+        console.error('Error streaming stdout:', err)
+      }
     })
   }
 
@@ -48,7 +59,23 @@ async function streamLogs() {
     const truncated = start > 0
     await core.group(`${logOutputResume.stderr ? 'Truncated ' : ''}Error Output:`, async () => {
       if (truncated) console.log(`Truncated ${start} bytes of tailed stderr output`)
-      await streamLog(stderrPath, start)
+      try {
+        await streamLog(stderrPath, start)
+      } catch(err) {
+        console.error('Error streaming stderr:', err)
+      }
     })
   }
 }
+
+(async() => {
+    try {
+      if (shouldLog) {
+        await streamLogs()
+      }
+    } catch(err) {
+        console.error('Error streaming logs:', err)
+    } finally {
+        process.exit(0)
+    }
+})();
