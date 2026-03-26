@@ -1,4 +1,4 @@
-module.exports = {
+export default {
    CI: 'true',
    GITHUB_ACTIONS: 'true',
    GITHUB_STATE: '',

@@ -1,9 +1,9 @@
-const core = require('@actions/core')
-const WaitOn = require('wait-on')
-const Tail = require('tail').Tail
-const path = require('path')
-const spawn = require('child_process').spawn
-const inputs = require('./input')
+import * as core from '@actions/core'
+import WaitOn from 'wait-on'
+import { Tail } from 'tail'
+import path from 'path'
+import { spawn } from 'child_process'
+import inputs from './input.js'
 
 const { run, workingDirectory, waitOn, tail, logOutput } = inputs
 const POST_RUN = core.getState('post-run')
@@ -16,7 +16,7 @@ if (core.isDebug()) {
 
 // serve as the entry-point for both main and post-run invocations
 if (POST_RUN) {
-  require('./post-run')
+  await import('./post-run.js')
 } else {
   (async function () {
     core.saveState('post-run', process.pid)
@@ -82,7 +82,7 @@ function TailWrapper(filename, shouldTail, output) {
     tail.on('line', output)
     tail.on('error', core.warning)
     return tail
-  } catch (e) {
+  } catch {
     console.warn('background-action tried to tail a file before it was ready....')
     return false
   }

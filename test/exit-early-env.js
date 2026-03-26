@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     USER: 'runner',
     CI: 'true',
     RUNNER_USER: 'runner',

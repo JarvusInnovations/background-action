@@ -2,6 +2,7 @@
   "name": "background-action",
   "version": "1.0.5",
   "description": "Background processes: tail std(out|err), dedupe post-run lines. Monitor exit-code and file/port/socket/http(s) (un)readiness.",
+  "type": "module",
   "main": "index.js",
   "engines": {
     "node": ">=20"
@@ -9,7 +10,7 @@
   "scripts": {
     "lint": "eslint .",
     "build": "ncc build index.js -o dist --source-map",
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "all": "npm run lint && npm run build && npm run test",
     "clean": "rm -rf dist && rm *.err && rm *.out"
   },
@@ -33,14 +34,16 @@
   },
   "homepage": "https://github.com/JarvusInnovations/background-action#readme",
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "parse-duration": "^1.1.0",
+    "@actions/core": "^3.0.0",
+    "parse-duration": "^2.1.5",
     "tail": "2.1.1",
-    "wait-on": "^7.2.0"
+    "wait-on": "^8.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@vercel/ncc": "^0.38.1",
-    "eslint": "^8.57.0",
+    "eslint": "^9.0.0",
+    "globals": "^17.4.0",
     "jest": "^29.7.0"
   }
 }

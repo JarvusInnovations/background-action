@@ -1,14 +1,15 @@
-const process = require('process')
-const cp = require('child_process')
-const core = require('@actions/core')
-const pkg = require('../package.json')
+import { jest, test, expect } from '@jest/globals'
+import process from 'process'
+import cp from 'child_process'
+import * as core from '@actions/core'
+import exitEarlyEnv from './exit-early-env.js'
 
 // shows how the runner will run a javascript action with env / stdout protocol
 test('exit-early', (done) => {
     jest.setTimeout(30000)
-    Object.assign(process.env, require('./exit-early-env'))
+    Object.assign(process.env, exitEarlyEnv)
 
-    const main = cp.spawn('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', `node ${pkg.main}`], { detached: false, env: process.env })
+    const main = cp.spawn('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', 'node index.js'], { detached: false, env: process.env })
 
     main.stdout.on('data', (data) => {
         if (data.toString().startsWith('::save-state name=')) {

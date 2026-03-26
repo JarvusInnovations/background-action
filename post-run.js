@@ -1,7 +1,7 @@
-const core = require('@actions/core')
-const inputs = require('./input')
-const fs = require('fs')
-const path = require('path')
+import * as core from '@actions/core'
+import inputs from './input.js'
+import fs from 'fs'
+import path from 'path'
 
 const { logOutput, logOutputResume, logOutputIf, workingDirectory } = inputs
 
@@ -31,9 +31,9 @@ if (core.isDebug()) {
   core.debug(`cwd: ${cwd}`)
 }
 
-function streamLog(path, start) {
+function streamLog(filePath, start) {
   return new Promise((resolve, reject) => {
-    const log = fs.createReadStream(path, { start, emitClose: true, encoding: 'utf8', autoClose: true })
+    const log = fs.createReadStream(filePath, { start, emitClose: true, encoding: 'utf8', autoClose: true })
     log.on('close', () => resolve(null))
     log.on('error', (err) => reject(err))
     log.pipe(process.stdout)

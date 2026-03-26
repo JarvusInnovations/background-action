@@ -1,5 +1,5 @@
-const core = require('@actions/core')
-const parseDuration = require('parse-duration')
+import * as core from '@actions/core'
+import parseDuration from 'parse-duration'
 
 function getRawInputs() {
     const run = core.getInput('run')
@@ -41,7 +41,7 @@ function normalizeInputs(inputs) {
         // allow JSON configurations for advanced usage
         const waitOnConfig = JSON.parse(waitOn)
         waitOn = waitOnConfig
-    } catch (e) {
+    } catch {
         waitOn = {
             resources: waitOn.split(/\n|,/).map(resource => resource.trim()).filter(line => line !== ''),
             timeout: parseDuration(waitFor),
@@ -55,4 +55,5 @@ function normalizeInputs(inputs) {
     return { run, name, waitOn, waitFor, tail, logOutput, logOutputResume, logOutputIf, workingDirectory }
 }
 
-module.exports = normalizeInputs(getRawInputs())
+const inputs = normalizeInputs(getRawInputs())
+export default inputs

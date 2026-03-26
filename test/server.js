@@ -1,4 +1,4 @@
-const http = require('http')
+import http from 'http'
 
 const PORT = process.env.PORT || 3000
 const DELAY = process.env.DELAY || 5000
@@ -27,4 +27,3 @@ setTimeout(() => {
   STDOUT && console.log(`${process.pid}:stdout:${x++}: Listening on ${PORT}`)
   server.listen(PORT)
 }, DELAY)
-
