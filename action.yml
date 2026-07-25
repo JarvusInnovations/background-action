@@ -2,7 +2,7 @@ name: 'background-action'
 branding:
   color: orange
   icon: terminal
-description: Background commands with log tailing/capture; waits until file/port/socket/http are ready to proceed. Isolates/dedupe errors.
+description: Run services in the background and wait until they're ready. If one fails to start, the step fails immediately with its logs instead of hanging until the timeout.
 inputs:
   run:
     description: commands to run, supports multi-line commands (to background multiple processes, use & at the end of each line)

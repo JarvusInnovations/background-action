@@ -1,6 +1,7 @@
 # background-action
 
-Run commands in the background with logging and failure detection. `background-action` will send your processes to the background once a set of files, ports, sockets or http resources are available. It can optionally tail output until ready/timeout and/or log output stderr/stdout post-run.
+Run services in the background and wait until they're ready. If one fails to start, the step
+fails immediately with its logs — instead of hanging until the timeout.
 
 ## Purpose
 
@@ -15,23 +16,21 @@ Use background-action to bootstrap your system under test to eliminate workflow 
 
 `background-action` addresses these issues directly and was purpose-built to bootstrap your system under test in a discrete step to isolate failures at the source. We hope that it saves you and your team time and reduces frustration in these trying times.
 
+### Why not just `run: npm start & npx wait-on http://localhost:3000`?
+
+That works, right up until the service dies on startup. `wait-on` cannot tell "not ready yet"
+from "exited two seconds ago", so it waits out the full timeout and fails with nothing to show
+for it — the output went to a process that no longer exists.
+
+`background-action` notices the process exited, fails the step straight away, and hands you its
+logs. It also stops what it started, so nothing is left holding a port.
+
+If your dependency is a container, prefer GitHub's own
+[service containers](https://docs.github.com/actions/using-containerized-services/about-service-containers) —
+they have health checks built in. This action is for the things that aren't containers: `npm
+start`, `./gradlew bootRun`, a compiled binary in your workspace.
+
 **Crafted with ❤️ by [Jarvus Innovations](https://jarv.us) in Philadelphia**
-
-## Upgrading from v1
-
-`v1` keeps working and is unchanged. When you move to `v2`, four things behave differently:
-
-- **Invalid option values now fail the step.** `tail`, `log-output`, `log-output-resume` and
-  `log-output-if` used to match on substrings, so `log-output: no-stderr` quietly *enabled*
-  stderr and a typo like `sdtout` quietly disabled logging. Values are now checked exactly.
-  The same applies to `wait-for`, where `abc123` used to become a silent 123ms timeout.
-- **Backgrounded processes are stopped during post-run.** They receive `SIGTERM`, get
-  `shutdown-grace` to exit, and anything they print on the way down is captured. Set
-  `shutdown: false` for the old behavior.
-- **A backgrounded process that fails is reported immediately** instead of waiting for the
-  readiness timeout.
-- **Logs live under `RUNNER_TEMP`**, not the workspace, so they can no longer be picked up by
-  an automated commit. Use the `stdout-log` / `stderr-log` outputs to reach them.
 
 ## Usage
 
@@ -164,5 +163,21 @@ the job, or to hand them to a later job, upload them as an artifact:
 | `socket:`          | Domain Socket is listening       | `socket:/path/to/sock`                   |
 | `http://unix:`     | http: over socket                | `http://unix:SOCK_PATH:URL_PATH`         |
 | `http-get://unix:` | http-get: over socket            | `http-get://unix:/path/to/sock:/foo/bar` |
+
+## Upgrading from v1
+
+`v1` keeps working and is unchanged. When you move to `v2`, four things behave differently:
+
+- **Invalid option values now fail the step.** `tail`, `log-output`, `log-output-resume` and
+  `log-output-if` used to match on substrings, so `log-output: no-stderr` quietly *enabled*
+  stderr and a typo like `sdtout` quietly disabled logging. Values are now checked exactly.
+  The same applies to `wait-for`, where `abc123` used to become a silent 123ms timeout.
+- **Backgrounded processes are stopped during post-run.** They receive `SIGTERM`, get
+  `shutdown-grace` to exit, and anything they print on the way down is captured. Set
+  `shutdown: false` for the old behavior.
+- **A backgrounded process that fails is reported immediately** instead of waiting for the
+  readiness timeout.
+- **Logs live under `RUNNER_TEMP`**, not the workspace, so they can no longer be picked up by
+  an automated commit. Use the `stdout-log` / `stderr-log` outputs to reach them.
 
 See the [actions tab](https://github.com/JarvusInnovations/background-action/actions) for runs of this action! :rocket:
