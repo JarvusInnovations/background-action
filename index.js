@@ -83,8 +83,12 @@ async function exitHandler(error, reason) {
   if (stderr && stderr.unwatch) stderr.unwatch()
 
   core.saveState(`reason_${process.pid}`, reason)
-  if (stdout && stdout.pos) core.saveState('stdout', stdout.pos)
-  if (stderr && stderr.pos) core.saveState('stderr', stderr.pos)
+
+  const stdoutPos = tailPosition(stdout)
+  const stderrPos = tailPosition(stderr)
+
+  if (stdoutPos) core.saveState('stdout', stdoutPos)
+  if (stderrPos) core.saveState('stderr', stderrPos)
 
   if (error) {
     core.error(error)
@@ -117,6 +121,10 @@ function runCommand(run) {
 
   shell.on('error', (err) => exitHandler(err, 'exit-early'))
   shell.on('close', (code) => exitHandler(new Error(`Exited early with status ${code}`), 'exit-early'))
+}
+
+function tailPosition(tail) {
+  return tail?.currentCursorPos ?? tail?.pos
 }
 
 function TailWrapper(filename, shouldTail, output) {
