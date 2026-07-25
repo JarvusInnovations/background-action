@@ -3,6 +3,7 @@ const cp = require('child_process')
 const net = require('net')
 const core = require('@actions/core')
 const pkg = require('../package.json')
+const saveState = require('./save-state')
 
 jest.setTimeout(60000)
 
@@ -31,14 +32,10 @@ test('shuts down the backgrounded process and captures its shutdown output', (do
 
     const main = cp.spawn('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', `node ${pkg.main}`], { detached: false, env: process.env })
 
-    main.stdout.on('data', (data) => {
-        if (data.toString().startsWith('::save-state name=')) {
-            const [name, val] = data.toString().split('\n')[0].split('=').pop().split('::')
-            process.env[`STATE_${name}`] = val
-        }
-    })
+    const mainOutput = saveState.collect(main.stdout)
 
     main.on('close', async () => {
+        saveState.apply(mainOutput(), process.env)
         const pid = core.getState('post-run')
         expect(core.getState(`reason_${pid}`)).toEqual('success')
 

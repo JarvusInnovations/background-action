@@ -2,6 +2,7 @@ const process = require('process')
 const cp = require('child_process')
 const core = require('@actions/core')
 const pkg = require('../package.json');
+const saveState = require('./save-state')
 
 const freePorts = require('./free-ports')
 
@@ -18,12 +19,7 @@ test('working-directory', (done) => {
 
     const main = cp.spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', `node ${pkg.main}`], { env: process.env, encoding: 'utf-8' })
 
-    main.stdout.split('\n').forEach(line => {
-        if (line.startsWith('::save-state name=')) {
-            const [name, val] = line.split('\n')[0].split('=').pop().split('::')
-            process.env[`STATE_${name}`] = val
-        }
-    })
+  saveState.apply(main.stdout, process.env)
 
     setTimeout(() => {
         const workingDirectory = core.getInput('working-directory')

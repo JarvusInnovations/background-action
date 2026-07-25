@@ -2,6 +2,7 @@ const process = require('process')
 const cp = require('child_process')
 const core = require('@actions/core')
 const pkg = require('../package.json')
+const saveState = require('./save-state')
 const freePorts = require('./free-ports')
 
 jest.setTimeout(60000)
@@ -19,14 +20,10 @@ test('reports a failed background process instead of waiting for the readiness t
     const started = Date.now()
     const main = cp.spawn('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', `node ${pkg.main}`], { detached: false, env: process.env })
 
-    main.stdout.on('data', (data) => {
-        if (data.toString().startsWith('::save-state name=')) {
-            const [name, val] = data.toString().split('\n')[0].split('=').pop().split('::')
-            process.env[`STATE_${name}`] = val
-        }
-    })
+    const mainOutput = saveState.collect(main.stdout)
 
     main.on('close', () => {
+        saveState.apply(mainOutput(), process.env)
         const elapsed = Date.now() - started
         const pid = core.getState('post-run')
 
