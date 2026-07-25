@@ -68,7 +68,7 @@ async function shutdownProcessGroup(pgid, graceMs) {
 
   try {
     process.kill(-pgid, 'SIGKILL')
-  } catch (err) {
+  } catch {
     // already exited between the deadline check and here
   }
 }

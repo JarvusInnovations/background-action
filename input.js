@@ -69,13 +69,13 @@ function normalizeInputs(inputs) {
     logOutputIf = logOutputIf.replace(/\bearly-exit\b/g, 'exit-early')
     logOutputIf = parseTokens(logOutputIf, ['true', 'false', 'failure', 'exit-early', 'timeout', 'success'], 'log-output-if')
 
-    let waitOnConfig = null
+    let waitOnConfig
 
     try {
         // allow JSON configurations for advanced usage
         waitOnConfig = JSON.parse(waitOn)
-    } catch (e) {
-        waitOnConfig = null // not JSON, treat the input as a resource list
+    } catch {
+        // not JSON -- fall through and treat the input as a resource list
     }
 
     if (waitOnConfig !== null && typeof waitOnConfig === 'object') {

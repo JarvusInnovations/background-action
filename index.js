@@ -127,7 +127,7 @@ function TailWrapper(filename, shouldTail, output) {
     tail.on('line', output)
     tail.on('error', core.warning)
     return tail
-  } catch (e) {
+  } catch {
     console.warn('background-action tried to tail a file before it was ready....')
     return false
   }

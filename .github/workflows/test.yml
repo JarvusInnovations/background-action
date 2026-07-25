@@ -10,6 +10,25 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+    - run: npm ci
+    - run: npm run lint
+
+  # workflows carry a lot of shell; actionlint runs shellcheck over every run: block
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker://rhysd/actionlint:1.7.12
+      with:
+        args: -color
+
   # unit tests
   jest:
     # macos runners ship bash 3.2, which is the only place the pid-polling fallback runs
