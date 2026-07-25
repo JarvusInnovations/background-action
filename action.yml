@@ -2,7 +2,7 @@ name: 'background-action'
 branding:
   color: orange
   icon: terminal
-description: Run services in the background with their output captured and tailed, and wait until they're ready. When one fails to start, the step fails immediately with its logs.
+description: Run services in the background and wait until they are ready. Their output is captured instead of cluttering your job log, and replayed only when you want it, such as on failure.
 inputs:
   run:
     description: commands to run, supports multi-line commands (to background multiple processes, use & at the end of each line)

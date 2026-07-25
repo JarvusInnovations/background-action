@@ -1,9 +1,9 @@
 # background-action
 
-Run services in the background with their output captured and tailed, and wait until they're
-ready. Their logs are yours: streamed live while you wait, replayed after the job on whatever
-conditions you choose, and available as file paths you can upload as artifacts. When one fails
-to start, the step fails immediately with its logs — instead of hanging until the timeout.
+Run services in the background, wait until they are genuinely ready, and keep their output out
+of your way until you need it. Set `log-output-if: failure` and a passing run stays quiet while
+a failing one hands you the logs. If a service dies on startup you find out in milliseconds
+instead of waiting out the timeout with nothing to show for it.
 
 ## Purpose
 
@@ -20,18 +20,24 @@ Use background-action to bootstrap your system under test to eliminate workflow 
 
 ### Why not just `run: npm start & npx wait-on http://localhost:3000`?
 
-That works, right up until the service dies on startup. `wait-on` cannot tell "not ready yet"
-from "exited two seconds ago", so it waits out the full timeout and fails with nothing to show
-for it — the output went to a process that no longer exists.
+It works until it doesn't, in three ways.
 
-`background-action` notices the process exited and fails the step straight away — but the more
-useful half is that it kept the output. You get it live while waiting, again after the job, and
-as a file you can upload as an artifact. It also stops what it started, so nothing is left
-holding a port, and captures whatever the service prints on its way down.
+**Its output lands in the middle of your job log**, interleaved with everything else, so the
+log you actually came to read is buried in somebody else's startup noise.
+
+**If the service dies while starting, you get nothing.** `wait-on` cannot tell "not ready yet"
+from "exited two seconds ago", so it waits out the full timeout and then fails with no
+explanation, because the output went to a process that no longer exists.
+
+**And it is still running** when your job moves on to the next step.
+
+`background-action` captures the output to files instead of your log, replays it only when you
+ask (`log-output-if: failure`, `timeout`, `success`, `true`, `false`), fails the moment the
+process exits, and shuts down what it started, capturing whatever it prints on the way down.
 
 If your dependency is a container, prefer GitHub's own
-[service containers](https://docs.github.com/actions/using-containerized-services/about-service-containers) —
-they have health checks built in. This action is for the things that aren't containers: `npm
+[service containers](https://docs.github.com/actions/using-containerized-services/about-service-containers),
+which have health checks built in. This action is for the things that are not containers: `npm
 start`, `./gradlew bootRun`, a compiled binary in your workspace.
 
 **Crafted with ❤️ by [Jarvus Innovations](https://jarv.us) in Philadelphia**
