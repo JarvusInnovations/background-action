@@ -44,7 +44,7 @@ jobs:
     env:
       API_PORT: 1212
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: JarvusInnovations/background-action@v2
         name: Bootstrap System Under Test (SUT)
         with:
