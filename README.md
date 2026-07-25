@@ -1,7 +1,9 @@
 # background-action
 
-Run services in the background and wait until they're ready. If one fails to start, the step
-fails immediately with its logs — instead of hanging until the timeout.
+Run services in the background with their output captured and tailed, and wait until they're
+ready. Their logs are yours: streamed live while you wait, replayed after the job on whatever
+conditions you choose, and available as file paths you can upload as artifacts. When one fails
+to start, the step fails immediately with its logs — instead of hanging until the timeout.
 
 ## Purpose
 
@@ -22,8 +24,10 @@ That works, right up until the service dies on startup. `wait-on` cannot tell "n
 from "exited two seconds ago", so it waits out the full timeout and fails with nothing to show
 for it — the output went to a process that no longer exists.
 
-`background-action` notices the process exited, fails the step straight away, and hands you its
-logs. It also stops what it started, so nothing is left holding a port.
+`background-action` notices the process exited and fails the step straight away — but the more
+useful half is that it kept the output. You get it live while waiting, again after the job, and
+as a file you can upload as an artifact. It also stops what it started, so nothing is left
+holding a port, and captures whatever the service prints on its way down.
 
 If your dependency is a container, prefer GitHub's own
 [service containers](https://docs.github.com/actions/using-containerized-services/about-service-containers) —
