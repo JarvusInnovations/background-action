@@ -2,6 +2,7 @@ const process = require('process')
 const cp = require('child_process')
 const core = require('@actions/core')
 const pkg = require('../package.json')
+const saveState = require('./save-state')
 const freePorts = require('./free-ports')
 
 let env
@@ -16,19 +17,14 @@ test('exit-early', (done) => {
 
     const main = cp.spawn('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', `node ${pkg.main}`], { detached: false, env: process.env })
 
-    main.stdout.on('data', (data) => {
-        if (data.toString().startsWith('::save-state name=')) {
-            const [name, val] = data.toString().split('\n')[0].split('=').pop().split('::')
-            process.env[`STATE_${name}`] = val
-        }
-        // console.log(`main: stdout: ${data}`)
-    })
+    const mainOutput = saveState.collect(main.stdout)
 
     /*main.stderr.on('data', (data) => {
         console.error(`main: stderr: ${data}`)
     })*/
 
     main.on('close', (code) => {
+        saveState.apply(mainOutput(), process.env)
         console.log(`main exited with code ${code}`)
 
         const pid = core.getState('post-run')
