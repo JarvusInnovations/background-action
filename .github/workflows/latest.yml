@@ -1,30 +1,104 @@
-name: "Test latest published version of action"
+name: "Acceptance test against the published action"
 
-on: workflow_dispatch
+# The suite in test.yml gates merges by running the action from the checkout. This one runs
+# the *published* action, so it catches the things a pre-merge gate cannot: a runner image
+# changing its bash or node, or a release that shipped a stale dist. It runs on a schedule
+# because that drift happens between releases, when nobody is looking.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 12 * * 1'
+
+permissions:
+  contents: read
 
 jobs:
-  success:
-    runs-on: ubuntu-latest
+  starts-processes-and-reports-logs:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - uses: JarvusInnovations/background-action@v1
+          node-version: '24'
+
+      - id: sut
+        uses: JarvusInnovations/background-action@v2
         with:
           run: |
-            PORT=1212 node test/server.js &
-            PORT=2121 node test/server.js &
-            PORT=3232 node test/server.js &
+            node -e "require('http').createServer((q,s)=>s.end('ok')).listen(17311,()=>console.log('listening on 17311'))" &
+            node -e "require('http').createServer((q,s)=>s.end('ok')).listen(17312,()=>console.log('listening on 17312'))" &
           wait-on: |
-            http://localhost:1212/bar
-            tcp:localhost:1212
-            http://localhost:2121/bar
-            tcp:localhost:2121
-            http://localhost:3232/bar
-            tcp:localhost:3232
-          log-output-resume: stderr
+            http://localhost:17311/
+            tcp:localhost:17312
+          wait-for: 2m
           tail: true
-          wait-for: 5m
           log-output: stderr,stdout
-      - run: sleep 30 # allow stderr to get output in the background
+
+      - name: the backgrounded servers are still serving
+        run: |
+          curl --fail --silent --show-error http://localhost:17311/ > /dev/null
+          curl --fail --silent --show-error http://localhost:17312/ > /dev/null
+
+      - name: the action reported where it put the logs
+        env:
+          STDOUT_LOG: ${{ steps.sut.outputs.stdout-log }}
+          STDERR_LOG: ${{ steps.sut.outputs.stderr-log }}
+        run: |
+          test -n "$STDOUT_LOG" || { echo "the stdout-log output was empty"; exit 1; }
+          test -n "$STDERR_LOG" || { echo "the stderr-log output was empty"; exit 1; }
+          test -s "$STDOUT_LOG" || { echo "no stdout log at $STDOUT_LOG"; exit 1; }
+          grep -q 'listening on 17311' "$STDOUT_LOG" || {
+            echo "captured stdout did not contain the server's own output:"; cat "$STDOUT_LOG"; exit 1;
+          }
+
+      - name: the logs are outside the workspace
+        env:
+          STDOUT_LOG: ${{ steps.sut.outputs.stdout-log }}
+          WORKSPACE: ${{ github.workspace }}
+        run: |
+          case "$STDOUT_LOG" in
+            "$WORKSPACE"*) echo "log was written into the workspace: $STDOUT_LOG"; exit 1 ;;
+            *) echo "logs are at $STDOUT_LOG" ;;
+          esac
+
+  reports-a-failed-background-process:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - id: before
+        run: echo "at=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - id: start
+        continue-on-error: true
+        uses: JarvusInnovations/background-action@v2
+        with:
+          # nothing ever listens on the awaited port, so the only way this ends early is by
+          # noticing the process that died
+          run: |
+            node -e "process.exit(3)" &
+            sleep 120 &
+          wait-on: tcp:localhost:17399
+          wait-for: 90s
+
+      - name: the dead process ended the step, and did so without waiting for the timeout
+        env:
+          OUTCOME: ${{ steps.start.outcome }}
+          STARTED_AT: ${{ steps.before.outputs.at }}
+        run: |
+          elapsed=$(( $(date +%s) - STARTED_AT ))
+          echo "step outcome=$OUTCOME after ${elapsed}s"
+          test "$OUTCOME" = "failure" || { echo "expected the step to fail"; exit 1; }
+          test "$elapsed" -lt 60 || {
+            echo "took ${elapsed}s against a 90s wait-for: the failure was found by timing out, not by detection"
+            exit 1
+          }

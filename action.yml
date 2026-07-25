@@ -14,7 +14,7 @@ inputs:
 
   wait-on:
     description: 'resources to wait on -- separated by commas or newlines, supported prefixes: [file,http,https,http-get,https-get,tcp,socket] (for advanced usage, pass a JSON serialized wait-on config)'
-    required: false
+    required: true
 
   wait-for:
     description: duration to wait for resources to be available (specify unit postfix, defaults to ms)
@@ -33,10 +33,25 @@ inputs:
     default: false
 
   log-output-if:
-    description: control if post-run logging occurs (timeout,early-exit,failure,true,false)
+    description: control if post-run logging occurs (timeout,exit-early,failure,success,true,false)
     default: true
 
+  shutdown:
+    description: send SIGTERM to the backgrounded process group during post-run and wait for it to exit, so shutdown output is captured and nothing is left holding ports
+    default: true
+
+  shutdown-grace:
+    description: how long to wait for the backgrounded process group to exit before sending SIGKILL (specify unit postfix, defaults to ms)
+    default: 10s
+
+outputs:
+  stdout-log:
+    description: path to the file capturing stdout from the run (under RUNNER_TEMP)
+
+  stderr-log:
+    description: path to the file capturing stderr from the run (under RUNNER_TEMP)
+
 runs:
-  using: 'node20'
-  main: 'index.js'
-  post: 'index.js'
+  using: 'node24'
+  main: 'dist/index.js'
+  post: 'dist/index.js'

@@ -1,0 +1,29 @@
+name: Release new action version
+
+# moves the floating major tag (v2) to the released commit so `@v2` consumers pick it up
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      TAG_NAME:
+        description: 'Tag name that the major tag will point to'
+        required: true
+
+env:
+  TAG_NAME: ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }}
+
+permissions:
+  contents: write
+
+jobs:
+  update_tag:
+    name: Update the major tag to include the ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }} changes
+    runs-on: ubuntu-latest
+    # add required reviewers to this environment to gate who can move the major tag
+    environment:
+      name: release
+    steps:
+      - uses: actions/publish-action@v0.4.0
+        with:
+          source-tag: ${{ env.TAG_NAME }}

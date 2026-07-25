@@ -8,6 +8,10 @@ node_modules/
 # Logs
 logs
 *.log
+
+# captured stdout/stderr from local test runs
+*.out
+*.err
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

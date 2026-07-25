@@ -1,0 +1,23 @@
+name: Publish Immutable Action Version
+
+# publishes the release to GHCR as an immutable, attested package so consumers can verify
+# the bundle they run came from this repository
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v7
+
+      - name: Publish
+        id: publish
+        uses: actions/publish-immutable-action@v0.0.4

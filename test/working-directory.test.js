@@ -3,12 +3,18 @@ const cp = require('child_process')
 const core = require('@actions/core')
 const pkg = require('../package.json');
 
+const freePorts = require('./free-ports')
+
+let env
+
+beforeAll(async () => { env = require('./working-directory-env')(await freePorts(1)) })
+
 jest.setTimeout(30000)
 
 // shows how the runner will run a javascript action with env / stdout protocol
 test('working-directory', (done) => {
 
-    Object.assign(process.env, require('./working-directory-env'))
+    Object.assign(process.env, env)
 
     const main = cp.spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', `node ${pkg.main}`], { env: process.env, encoding: 'utf-8' })
 

@@ -2,17 +2,20 @@ const process = require('process')
 const cp = require('child_process')
 const core = require('@actions/core')
 const pkg = require('../package.json')
+const freePorts = require('./free-ports')
 
 jest.setTimeout(30000)
 
 test('success', async () => {
+  const [first, second, third] = await freePorts(3)
+
   Object.assign(process.env, {
     CI: 'true',
     GITHUB_ACTIONS: 'true',
     GITHUB_STATE: '',
     USER: 'runner',
-    INPUT_RUN: 'DELAY=1000 PORT=3333 node test/server.js &\nPORT=4444 DELAY=2000 node test/server.js &\nDELAY=3000 PORT=5566 node test/server.js &\n',
-    'INPUT_WAIT-ON': 'http://localhost:3333/bar\ntcp:localhost:3333\nhttp://localhost:4444/bar\ntcp:localhost:4444\nhttp://localhost:5566/bar\ntcp:localhost:5566\n',
+    INPUT_RUN: `DELAY=1000 PORT=${first} node test/server.js &\nPORT=${second} DELAY=2000 node test/server.js &\nDELAY=3000 PORT=${third} node test/server.js &\n`,
+    'INPUT_WAIT-ON': `http://localhost:${first}/bar\ntcp:localhost:${first}\nhttp://localhost:${second}/bar\ntcp:localhost:${second}\nhttp://localhost:${third}/bar\ntcp:localhost:${third}\n`,
     'INPUT_LOG-OUTPUT-RESUME': 'true',
     INPUT_TAIL: 'true',
     'INPUT_WAIT-FOR': '10s',

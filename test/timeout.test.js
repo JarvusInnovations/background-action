@@ -3,11 +3,17 @@ const cp = require('child_process')
 const core = require('@actions/core')
 const pkg = require('../package.json');
 
+const freePorts = require('./free-ports')
+
+let env
+
+beforeAll(async () => { env = require('./timeout-env')(await freePorts(4)) })
+
 jest.setTimeout(30000)
 
 // shows how the runner will run a javascript action with env / stdout protocol
 test('timeout', (done) => {
-    Object.assign(process.env, require('./timeout-env'))
+    Object.assign(process.env, env)
 
     const main = cp.spawn('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', `node ${pkg.main}`], { detached: false, env: process.env })
 
