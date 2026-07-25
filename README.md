@@ -119,9 +119,7 @@ milliseconds, and units may be written either way:
 | days         | `d`, `day(s)`                                | `1d`     |
 | weeks        | `w`, `week(s)`                               | `1w`     |
 
-Amounts may be fractional (`1.5h`) and units may be combined (`1h30m45s`). Anything that is not
-entirely a duration -- `30x`, `10 minutes please` -- fails the step rather than being partially
-interpreted.
+Amounts may be fractional (`1.5h`) and units may be combined (`1h30m45s`).
 
 ### Outputs
 
