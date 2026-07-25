@@ -92,18 +92,36 @@ jobs:
 |---------------------|----------------------------------------------------------------------|-------------------------------------------------|-----------------|
 | `run`               | Commands to run, supports multiple lines                             |                                                 |                 |
 | `wait-on`           | What resources to wait for: `http\|tcp\|file\|socket\|unix://`       | See `wait-on` below                             |                 |
-| `wait-for`          | How long to wait for (default unit: `ms`)                            | `#ms, #s/sec, #m/min, #h/hr`                    | `30s`           |
+| `wait-for`          | How long to wait for (default unit: `ms`)                            | See Durations below                              | `30s`           |
 | `tail`              | Which outputs to tail while you wait                                 | `stderr,stdout,true,false`                      | `true`          |
 | `log-output`        | Which outputs to log post-run (after the job)                        | `stderr,stdout,true,false`                      | `stdout,stderr` |
 | `log-output-resume` | Which outputs should resume where tail left off (no duplicate lines) | `stderr,stdout,true,false`                      | `false`         |
 | `log-output-if`     | Whether or not to log output                                         | `failure,exit-early,timeout,success,true,false` | `true`          |
 | `working-directory` | Sets the working directory (cwd) for the shell running commands      |                                                 |                 |
 | `shutdown`          | Stop backgrounded processes during post-run and capture their shutdown output | `true,false`                           | `true`          |
-| `shutdown-grace`    | How long to wait for a clean shutdown before forcing it              | `#ms, #s/sec, #m/min, #h/hr`                    | `10s`           |
+| `shutdown-grace`    | How long to wait for a clean shutdown before forcing it              | See Durations below                              | `10s`           |
 
 Each of `tail`, `log-output`, `log-output-resume` and `log-output-if` accepts a comma or space
 separated list of the values above. Anything else fails the step rather than silently disabling
 logging.
+
+### Durations
+
+`wait-for` and `shutdown-grace` accept an amount followed by a unit. A bare number is
+milliseconds, and units may be written either way:
+
+| Unit         | Spellings                                    | Example  |
+|--------------|----------------------------------------------|----------|
+| milliseconds | `ms`, `msec(s)`, `millisecond(s)`            | `500ms`  |
+| seconds      | `s`, `sec(s)`, `second(s)`                   | `30s`    |
+| minutes      | `m`, `min(s)`, `minute(s)`                   | `10 minutes` |
+| hours        | `h`, `hr(s)`, `hour(s)`                      | `2h`     |
+| days         | `d`, `day(s)`                                | `1d`     |
+| weeks        | `w`, `week(s)`                               | `1w`     |
+
+Amounts may be fractional (`1.5h`) and units may be combined (`1h30m45s`). Anything that is not
+entirely a duration -- `30x`, `10 minutes please` -- fails the step rather than being partially
+interpreted.
 
 ### Outputs
 

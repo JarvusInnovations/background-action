@@ -81,6 +81,33 @@ describe('duration inputs', () => {
         expect(loadInputs({ 'INPUT_WAIT-FOR': '1h30m' }).waitOn.timeout).toEqual(5400000)
     })
 
+    // terse and verbose spellings of the same unit both work, and a bare number is milliseconds
+    test.each([
+        ['90', 90],
+        ['500ms', 500],
+        ['500 milliseconds', 500],
+        ['30s', 30000],
+        ['30sec', 30000],
+        ['30 seconds', 30000],
+        ['5m', 300000],
+        ['5min', 300000],
+        ['10 minutes', 600000],
+        ['2h', 7200000],
+        ['2hr', 7200000],
+        ['2 hours', 7200000],
+        ['1.5h', 5400000],
+        ['1d', 86400000],
+        ['1w', 604800000],
+        ['1h30m', 5400000],
+        ['1h30m45s', 5445000]
+    ])('accepts %s', (input, expected) => {
+        expect(loadInputs({ 'INPUT_WAIT-FOR': input }).waitOn.timeout).toEqual(expected)
+    })
+
+    test.each(['30x', '1 fortnight', '5 parsecs', '10 minutes please'])('rejects the unrecognized unit in %s', (input) => {
+        expect(() => loadInputs({ 'INPUT_WAIT-FOR': input })).toThrow(/wait-for/)
+    })
+
     test('validates shutdown-grace the same way', () => {
         expect(() => loadInputs({ 'INPUT_SHUTDOWN-GRACE': 'soon' })).toThrow(/shutdown-grace/)
     })

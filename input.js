@@ -1,5 +1,34 @@
 const core = require('@actions/core')
-const parseDuration = require('parse-duration')
+
+const DURATION_UNITS = {
+    ms: 1, msec: 1, msecs: 1, millisecond: 1, milliseconds: 1,
+    s: 1000, sec: 1000, secs: 1000, second: 1000, seconds: 1000,
+    m: 60000, min: 60000, mins: 60000, minute: 60000, minutes: 60000,
+    h: 3600000, hr: 3600000, hrs: 3600000, hour: 3600000, hours: 3600000,
+    d: 86400000, day: 86400000, days: 86400000,
+    w: 604800000, week: 604800000, weeks: 604800000
+}
+
+const DURATION_PART = /(\d+(?:\.\d+)?)\s*([a-z]*)/gi
+
+// wait-on takes a plain millisecond count, so durations are only ever understood here.
+// Sums each <amount><unit> pair, which is what makes `1h30m` work, and refuses anything it
+// could not account for rather than quietly using the part it recognized.
+function parseDuration(str) {
+    let total = 0
+    let consumed = 0
+
+    for (const [match, amount, unit] of str.matchAll(DURATION_PART)) {
+        const scale = DURATION_UNITS[unit.toLowerCase() || 'ms']
+
+        if (scale === undefined) return NaN
+
+        total += parseFloat(amount) * scale
+        consumed += match.length
+    }
+
+    return consumed === str.length ? Math.floor(total) : NaN
+}
 
 function getRawInputs() {
     const run = core.getInput('run')
@@ -31,11 +60,8 @@ function parseTokens(str, allowed, name) {
     return tokens
 }
 
-// parse-duration is lenient: nonsense yields null, negatives stay negative, and it will pull
-// `123` out of `abc123` -- which silently becomes a 123 millisecond timeout. Require something
-// that at least starts like a duration, and a positive finite result.
 function parseDurationInput(str, name) {
-    const ms = /^\d/.test(str) ? parseDuration(str) : null
+    const ms = parseDuration(str)
 
     if (Number.isFinite(ms) === false || ms <= 0) {
         throw new Error(`Invalid input for: ${name}, expecting a positive duration (eg 30s, 5m, 1h30m) received: ${str}`)

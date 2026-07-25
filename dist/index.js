@@ -5,7 +5,36 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(7484)
-const parseDuration = __nccwpck_require__(8530)
+
+const DURATION_UNITS = {
+    ms: 1, msec: 1, msecs: 1, millisecond: 1, milliseconds: 1,
+    s: 1000, sec: 1000, secs: 1000, second: 1000, seconds: 1000,
+    m: 60000, min: 60000, mins: 60000, minute: 60000, minutes: 60000,
+    h: 3600000, hr: 3600000, hrs: 3600000, hour: 3600000, hours: 3600000,
+    d: 86400000, day: 86400000, days: 86400000,
+    w: 604800000, week: 604800000, weeks: 604800000
+}
+
+const DURATION_PART = /(\d+(?:\.\d+)?)\s*([a-z]*)/gi
+
+// wait-on takes a plain millisecond count, so durations are only ever understood here.
+// Sums each <amount><unit> pair, which is what makes `1h30m` work, and refuses anything it
+// could not account for rather than quietly using the part it recognized.
+function parseDuration(str) {
+    let total = 0
+    let consumed = 0
+
+    for (const [match, amount, unit] of str.matchAll(DURATION_PART)) {
+        const scale = DURATION_UNITS[unit.toLowerCase() || 'ms']
+
+        if (scale === undefined) return NaN
+
+        total += parseFloat(amount) * scale
+        consumed += match.length
+    }
+
+    return consumed === str.length ? Math.floor(total) : NaN
+}
 
 function getRawInputs() {
     const run = core.getInput('run')
@@ -37,11 +66,8 @@ function parseTokens(str, allowed, name) {
     return tokens
 }
 
-// parse-duration is lenient: nonsense yields null, negatives stay negative, and it will pull
-// `123` out of `abc123` -- which silently becomes a 123 millisecond timeout. Require something
-// that at least starts like a duration, and a positive finite result.
 function parseDurationInput(str, name) {
-    const ms = /^\d/.test(str) ? parseDuration(str) : null
+    const ms = parseDuration(str)
 
     if (Number.isFinite(ms) === false || ms <= 0) {
         throw new Error(`Invalid input for: ${name}, expecting a positive duration (eg 30s, 5m, 1h30m) received: ${str}`)
@@ -24562,89 +24588,6 @@ function fmtLong(ms) {
 function plural(ms, msAbs, n, name) {
   var isPlural = msAbs >= n * 1.5;
   return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
-}
-
-
-/***/ }),
-
-/***/ 8530:
-/***/ ((module) => {
-
-"use strict";
-
-
-var durationRE = /(-?(?:\d+\.?\d*|\d*\.?\d+)(?:e[-+]?\d+)?)\s*([\p{L}]*)/uig
-
-module.exports = parse
-// enable default import syntax in typescript
-module.exports["default"] = parse
-
-/**
- * conversion ratios
- */
-
-parse.nanosecond =
-parse.ns = 1 / 1e6
-
-parse['µs'] =
-parse['μs'] =
-parse.us =
-parse.microsecond = 1 / 1e3
-
-parse.millisecond =
-parse.ms =
-parse[''] = 1
-
-parse.second =
-parse.sec =
-parse.s = parse.ms * 1000
-
-parse.minute =
-parse.min =
-parse.m = parse.s * 60
-
-parse.hour =
-parse.hr =
-parse.h = parse.m * 60
-
-parse.day =
-parse.d = parse.h * 24
-
-parse.week =
-parse.wk =
-parse.w = parse.d * 7
-
-parse.month =
-parse.b =
-parse.d * (365.25 / 12)
-
-parse.year =
-parse.yr =
-parse.y = parse.d * 365.25
-
-/**
- * convert `str` to ms
- *
- * @param {String} str
- * @param {String} format
- * @return {Number}
- */
-
-function parse(str='', format='ms'){
-  var result = null
-  // ignore commas/placeholders
-  str = (str+'').replace(/(\d)[,_](\d)/g, '$1$2')
-  var isNegative = str[0] === '-';
-  str.replace(durationRE, function(_, n, units){
-    units = unitRatio(units)
-    if (units) result = (result || 0) + Math.abs(parseFloat(n, 10)) * units
-  })
-
-  return result && ((result / (unitRatio(format) || 1)) * (isNegative ? -1 : 1))
-}
-
-function unitRatio(str) {
-  return parse[str] || parse[str.toLowerCase().replace(/s$/, '')]
 }
 
 
