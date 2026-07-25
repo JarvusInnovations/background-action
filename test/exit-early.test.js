@@ -2,11 +2,17 @@ const process = require('process')
 const cp = require('child_process')
 const core = require('@actions/core')
 const pkg = require('../package.json')
+const freePorts = require('./free-ports')
+
+let env
+
+beforeAll(async () => { env = require('./exit-early-env')(await freePorts(3)) })
+
+jest.setTimeout(30000)
 
 // shows how the runner will run a javascript action with env / stdout protocol
 test('exit-early', (done) => {
-    jest.setTimeout(30000)
-    Object.assign(process.env, require('./exit-early-env'))
+    Object.assign(process.env, env)
 
     const main = cp.spawn('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', `node ${pkg.main}`], { detached: false, env: process.env })
 
