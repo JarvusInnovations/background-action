@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "build": "ncc build index.js -o dist --source-map",
+    "build": "rolldown -c rolldown.config.js",
     "test": "jest",
     "all": "npm run lint && npm run build && npm run test",
     "clean": "rm -rf dist && rm *.err && rm *.out"
@@ -41,9 +41,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@vercel/ncc": "^0.44.1",
     "eslint": "^10.8.0",
     "globals": "^17.7.0",
-    "jest": "^30.4.2"
+    "jest": "^30.4.2",
+    "rolldown": "^1.2.3"
   }
 }
